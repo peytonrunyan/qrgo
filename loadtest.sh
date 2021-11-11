@@ -1,0 +1,1 @@
+ab -p loadtest.json -T application/json -n 10000 -c 100 http://localhost:8082/location

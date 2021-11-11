@@ -1,0 +1,55 @@
+{{template "base" .}}
+
+{{define "title"}}Home{{end}}
+
+{{define "main"}}
+<script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition);
+        } else {
+            x.innerHTML = "<h2>Geolocation is not supported by this browser.</h2>";
+        }
+    }
+
+    $.urlParam = function (name) {
+        var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+        return results[1] || 0;
+    }
+
+    function showPosition(position) {
+        console.log('latitude', position.coords.latitude);
+        console.log('showPosition hit');
+        $.ajax({
+            type: 'POST',
+            url: '/location',
+            data: JSON.stringify({ 'material': $.urlParam('material'), 'latitude': position.coords.latitude, 'longitude': position.coords.longitude }, null, '\t'),
+            contentType: 'application/json;charset=UTF-8',
+            success: function (data) {
+                $('#x').html(data);
+                $('#z').html("");
+                console.log(data);
+            }
+        });
+    }
+</script>
+
+<body>
+    <div id="z">
+        <h1>
+            Can I recycle it?
+        </h1>
+        <p>
+        <h2>
+            Please authorize geolocation services so that we can determine whether or not this material is recyclable in
+            your area
+        </h2>
+        </p>
+        <button class="bt" onclick="getLocation()">Share Location</button>
+    </div>
+    <p id="x"></p>
+    <p id="y"></p>
+</body>
+{{end}}
