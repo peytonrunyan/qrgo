@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path/filepath"
 	"text/template"
 
 	"github.com/gorilla/mux"
@@ -15,8 +16,8 @@ type httpServer struct{}
 
 func (s *httpServer) home(w http.ResponseWriter, r *http.Request) {
 	files := []string{
-		"./ui/html/home.page.tmpl",
-		"./ui/html/base.layout.tmpl",
+		filepath.FromSlash("./ui/html/home.page.tmpl"),
+		filepath.FromSlash("./ui/html/base.layout.tmpl"),
 	}
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
@@ -101,7 +102,7 @@ func NewHTTPServer(addr string) *http.Server {
 	r.HandleFunc("/", httpServer.home).Methods("GET")
 	// r.HandleFunc("/", httpServer.recyclable).Methods("GET")
 	r.HandleFunc("/location", httpServer.location).Methods("POST")
-	// r.HandleFunc("/recycle", httpServer.recyclable).Methods("GET")
+	r.HandleFunc("/recycle", httpServer.recyclable).Methods("GET")
 
 	return &http.Server{
 		Addr:    addr,
