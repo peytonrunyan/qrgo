@@ -16,8 +16,8 @@ func main() {
 	// }
 	// defer db.Close()
 
-	srv := server.NewHTTPServer(":" + "8082")
-	fmt.Println("Listening on 8082")
+	srv := server.NewHTTPServer(":" + "8080")
+	fmt.Println("Listening on 8080")
 	log.Fatal(srv.ListenAndServe())
 }
 
