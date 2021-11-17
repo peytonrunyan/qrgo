@@ -59,6 +59,17 @@ type GuidelinesResponse struct {
 	Guidelines []MaterialResult `json:"guidelines"`
 }
 
+// Check if containers are communicating
+func (s *httpServer) pingRS(w http.ResponseWriter, r *http.Request) {
+	res, err := http.Get("http://recycling-service:8082/ping")
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte(res.Status))
+}
+
 func (s *httpServer) location(w http.ResponseWriter, r *http.Request) {
 	// Provides lat and long for first service and material for second service
 	var reqInfo RequestInfo
@@ -68,13 +79,13 @@ func (s *httpServer) location(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	// Send request to location service
+	// Send request to geoservice
 	body, err := json.Marshal(
 		&LocServiceRequest{
 			reqInfo.Latitude,
 			reqInfo.Longitude},
 	)
-	res, err := http.Post("http://localhost:8081", "application/json", bytes.NewBuffer(body))
+	res, err := http.Post("http://geoservice:8083", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -91,7 +102,7 @@ func (s *httpServer) location(w http.ResponseWriter, r *http.Request) {
 		log.Println(locRes.ErrorMsg)
 		http.Error(w, locRes.ErrorMsg, http.StatusNotFound)
 	}
-	// Send request to recycling info service
+	// Send request to recycling-service
 	body, err = json.Marshal(
 		&GuidelinesRequest{CommunityID: locRes.CommunityID},
 	)
@@ -100,7 +111,7 @@ func (s *httpServer) location(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	res, err = http.Post("http://localhost:8082", "application/json", bytes.NewBuffer(body))
+	res, err = http.Post("http://recycling-service:8082", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -133,6 +144,7 @@ func NewHTTPServer(addr string) *http.Server {
 	r := mux.NewRouter()
 	r.HandleFunc("/location", httpServer.location).Methods("POST")
 	r.HandleFunc("/recycle", httpServer.recyclable).Methods("POST")
+	r.HandleFunc("/pingrs", httpServer.pingRS).Methods("GET")
 
 	return &http.Server{
 		Addr:    addr,

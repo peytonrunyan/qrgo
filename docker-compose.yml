@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  qrcode-backend:
+    image: qrcode-backend
+    ports:
+      - "8080:8080" 
+    links:
+      - geoservice
+      - recycling-service
+  geoservice:
+    image: geoservice
+    ports:
+      - "8081:8083" # use for healthchecks and testing
+  recycling-service:
+    image: recycling-service
+    ports:
+      - "8082:8082" # use for healthchecks and testing
